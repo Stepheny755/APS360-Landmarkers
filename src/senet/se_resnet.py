@@ -2,9 +2,8 @@
 ## Adapted from: https://github.com/moskomule/senet.pytorch/releases/tag/archive
 
 import torch.nn as nn
-from torch.hub import load_state_dict_from_url
 from torchvision.models import ResNet
-from senet.se_module import SELayer
+from se_module import SELayer
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -89,51 +88,72 @@ class SEBottleneck(nn.Module):
         return out
 
 
-def se_resnet18(num_classes=1_000):
+def se_resnet18(num_classes=1_000, feature_extractor=True):
     """Constructs a ResNet-18 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(SEBasicBlock, [2, 2, 2, 2], num_classes=num_classes)
-    #model.avgpool = nn.AdaptiveAvgPool2d(1)
+    if not feature_extractor:
+        model.avgpool = nn.AdaptiveAvgPool2d(1)
     return model
 
 
-def se_resnet34(num_classes=1_000):
+def se_resnet34(num_classes=1_000, feature_extractor=True):
     """Constructs a ResNet-34 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(SEBasicBlock, [3, 4, 6, 3], num_classes=num_classes)
-    #model.avgpool = nn.AdaptiveAvgPool2d(1)
+    if feature_extractor:
+        model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
+        modules = list(model.children())[:-2]  # remove avg pool and fc
+        model = nn.Sequential(*modules)
+    else:
+        model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
+        model.avgpool = nn.AdaptiveAvgPool2d(1)
     return model
 
 
-def se_resnet50(num_classes=1_000, pretrained=False):
+def se_resnet50(num_classes=1_000, feature_extractor=True):
     """Constructs a ResNet-50 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
-    #model.avgpool = nn.AdaptiveAvgPool2d(1)
+    if feature_extractor:
+        model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
+        modules = list(model.children())[:-2]  # remove avg pool and fc
+        model = nn.Sequential(*modules)
+    else:
+        model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
+        model.avgpool = nn.AdaptiveAvgPool2d(1)
     return model
 
 
-def se_resnet101(num_classes=1_000):
+def se_resnet101(num_classes=1_000, feature_extractor=True):
     """Constructs a ResNet-101 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(SEBottleneck, [3, 4, 23, 3], num_classes=num_classes)
-    #model.avgpool = nn.AdaptiveAvgPool2d(1)
+    if feature_extractor:
+        model = ResNet(SEBottleneck, [3, 4, 23, 3], num_classes=num_classes)
+        modules = list(model.children())[:-2]  # remove avg pool and fc
+        model = nn.Sequential(*modules)
+    else:
+        model = ResNet(SEBottleneck, [3, 4, 23, 3], num_classes=num_classes)
+        model.avgpool = nn.AdaptiveAvgPool2d(1)
     return model
 
 
-def se_resnet152(num_classes=1_000):
+def se_resnet152(num_classes=1_000, feature_extractor=True):
     """Constructs a ResNet-152 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(SEBottleneck, [3, 8, 36, 3], num_classes=num_classes)
-    #model.avgpool = nn.AdaptiveAvgPool2d(1)
+    if feature_extractor:
+        model = ResNet(SEBottleneck, [3, 8, 36, 3], num_classes=num_classes)
+        modules = list(model.children())[:-2]  # remove avg pool and fc
+        model = nn.Sequential(*modules)
+    else:
+        model = ResNet(SEBottleneck, [3, 8, 36, 3], num_classes=num_classes)
+        model.avgpool = nn.AdaptiveAvgPool2d(1)
     return model
