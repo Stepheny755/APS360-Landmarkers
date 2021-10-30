@@ -9,7 +9,6 @@ Example:
 from src.senet.se_resnet import se_resnet50
 model = se_resnet50(num_classes=1_000, feature_extractor=True)  # Load a SE_ResNet50 model as feature extractor
 features = model(img)  # features shape [samples, 1280, 7, 7]
-extracted feature size from SE-ResNet-50: 2048
 ```
 
 ## EfficientNet
