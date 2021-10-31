@@ -26,5 +26,5 @@ Adapted from: https://github.com/microsoft/Swin-Transformer/commit/6bbd83ca617db
 
 Example: see sample code in src/swintransformer/build_model.py
 ```python
-# features shape [samples, 768, 1]
+# features shape [samples, 768]
 ```
