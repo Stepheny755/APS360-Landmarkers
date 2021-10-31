@@ -93,8 +93,12 @@ def se_resnet18(num_classes=1_000, feature_extractor=True):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(SEBasicBlock, [2, 2, 2, 2], num_classes=num_classes)
-    if not feature_extractor:
+    if feature_extractor:
+        model = ResNet(SEBottleneck, [2, 2, 2, 2], num_classes=num_classes)
+        modules = list(model.children())[:-1]  # remove fc
+        model=nn.Sequential(*modules, nn.Flatten())  # add flatten
+    else:
+        model = ResNet(SEBottleneck, [2, 2, 2, 2], num_classes=num_classes)
         model.avgpool = nn.AdaptiveAvgPool2d(1)
     return model
 
@@ -106,8 +110,8 @@ def se_resnet34(num_classes=1_000, feature_extractor=True):
     """
     if feature_extractor:
         model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
-        modules = list(model.children())[:-2]  # remove avg pool and fc
-        model = nn.Sequential(*modules)
+        modules = list(model.children())[:-1]  # remove fc
+        model=nn.Sequential(*modules, nn.Flatten())  # add flatten
     else:
         model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
         model.avgpool = nn.AdaptiveAvgPool2d(1)
@@ -121,8 +125,8 @@ def se_resnet50(num_classes=1_000, feature_extractor=True):
     """
     if feature_extractor:
         model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
-        modules = list(model.children())[:-2]  # remove avg pool and fc
-        model = nn.Sequential(*modules)
+        modules = list(model.children())[:-1]  # remove fc
+        model=nn.Sequential(*modules, nn.Flatten())  # add flatten
     else:
         model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
         model.avgpool = nn.AdaptiveAvgPool2d(1)
@@ -136,8 +140,8 @@ def se_resnet101(num_classes=1_000, feature_extractor=True):
     """
     if feature_extractor:
         model = ResNet(SEBottleneck, [3, 4, 23, 3], num_classes=num_classes)
-        modules = list(model.children())[:-2]  # remove avg pool and fc
-        model = nn.Sequential(*modules)
+        modules = list(model.children())[:-1]  # remove fc
+        model=nn.Sequential(*modules, nn.Flatten())  # add flatten
     else:
         model = ResNet(SEBottleneck, [3, 4, 23, 3], num_classes=num_classes)
         model.avgpool = nn.AdaptiveAvgPool2d(1)
@@ -151,8 +155,8 @@ def se_resnet152(num_classes=1_000, feature_extractor=True):
     """
     if feature_extractor:
         model = ResNet(SEBottleneck, [3, 8, 36, 3], num_classes=num_classes)
-        modules = list(model.children())[:-2]  # remove avg pool and fc
-        model = nn.Sequential(*modules)
+        modules = list(model.children())[:-1]  # remove fc
+        model=nn.Sequential(*modules, nn.Flatten())  # flatten
     else:
         model = ResNet(SEBottleneck, [3, 8, 36, 3], num_classes=num_classes)
         model.avgpool = nn.AdaptiveAvgPool2d(1)
