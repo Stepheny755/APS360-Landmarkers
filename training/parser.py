@@ -1,4 +1,5 @@
 import argparse
+import os
 
 def parse_option():
     parser = argparse.ArgumentParser('argument for training')
@@ -14,8 +15,6 @@ def parse_option():
                         help='number of workers to use')
     parser.add_argument('--epochs', type=int, default=100,
                         help='number of training epochs')
-    parser.add_argument('--p', type=int, default=1,
-                        help='options: 1, 2')
 
     # Optimization
     parser.add_argument('--learning_rate', type=float, default=0.1,
@@ -42,8 +41,12 @@ def parse_option():
                         help='path to the parent containing the dataset folder')
 
     # network
-    parser.add_argument('--network', type=str, default='resnet18',
+    parser.add_argument('--network', type=str, default='efficientnet',
+                        choices=['efficientnet', "senet", "swin", "DeLF+SVM"],
                         help='network to train')
+    parser.add_argument('--from_pretrained', type=str, default='True',
+                        choices=['True', "False"],
+                        help='whether the model is pretrained or not')
     parser.add_argument('--checkpoint_path', type=str, default=None,
                         help='path to checkpoint to load')
 

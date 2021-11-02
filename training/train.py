@@ -12,25 +12,23 @@ import collections
 import warnings
 warnings.filterwarnings("ignore")
 
-from utils import AverageMeter, set_scheduler, set_optimizer, save_model,\
-                 GaussianParams, plot_loss_df, str2bool
-from image_transforms import get_transforms
+from utils import AverageMeter
 from datetime import datetime
 from classifier import get_model, accuracyADP
 
 
 
 def one_epoch_iteration(train_loader, test_loader, model, criterion,
-                        optimizer, epoch, config, history):
+                        optimizer, epoch, config, writer):
 
     start_time = time.time()
 
     """---------------Training------------------"""
     train_loss, train_acc = train(train_loader, model, criterion,
-                                  optimizer, epoch, config)
+                                  optimizer, epoch, config, writer)
 
     """-----------------Testing------------------"""
-    test_loss, test_acc = test(test_loader, model, criterion, config)
+    test_loss, test_acc = test(test_loader, model, criterion, config, writer)
     end_time = time.time()
 
     print('epoch {}\t'
