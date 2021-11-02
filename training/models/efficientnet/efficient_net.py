@@ -200,7 +200,8 @@ class EfficientNet(nn.Module):
         x = self._avg_pooling(x)
         x = x.view(bs, -1)
         x = self._dropout(x)
-        x = self._fc(x)
+        if not self._global_params.feature_extractor:
+            x = self._fc(x)
         return x
 
     @classmethod
