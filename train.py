@@ -1,7 +1,18 @@
-from training import train
-from training import parse_option
-from training import set_loader, set_model, set_optimizer, set_scheduler
+from datetime import datetime
+import collections
+import os
+
+import pandas as pd
 from torch.utils.tensorboard import SummaryWriter
+
+from training import (one_epoch_iteration,
+                      parse_option, 
+                      set_loader, 
+                      set_model, 
+                      set_optimizer, 
+                      set_scheduler,
+                      save_model)
+
 
 
 def main():
@@ -15,10 +26,12 @@ def main():
 
     # build optimizer and scheduler
     optimizer = set_optimizer(config, model)
-    scheduler = set_scheduler(config, optimizer)
+    if config.scheduler != "None":
+        scheduler = set_scheduler(config, optimizer)
+    else:
+        scheduler = None
 
     # Metrics Calculation
-    performance_statistics = {}
     cur_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     losses = collections.defaultdict(list)
     losses_filename = "losses_" + \
@@ -32,7 +45,7 @@ def main():
                       f"_{config.lr_decay_rate}" + \
                       f"_LR={config.learning_rate}" + \
                       ".xlsx".replace(' ', '-')
-    writer = SummaryWriter(f'{os.path.join(config.eval_folder, losses_filename)}')
+    writer = SummaryWriter(f'{os.path.join(config.eval_folder, "runs", losses_filename.replace(".xlsx", ""))}')
 
 
     """___________________Training____________________"""
@@ -40,8 +53,9 @@ def main():
 
         # train and test for one epoch
         train_loss, test_loss, train_acc, test_acc = one_epoch_iteration(train_loader, test_loader, model, criterion,
-                                                                         optimizer, epoch, config, history)
-        scheduler.step()
+                                                                         optimizer, epoch, config, writer)
+        if scheduler:
+            scheduler.step()
 
         losses["train_loss"].append(train_loss)
         losses["test_loss"].append(test_loss)
@@ -50,29 +64,21 @@ def main():
 
         losses['learning_rate'].append(optimizer.param_groups[0]['lr'])
 
-        # Performance metrics
-        if train_acc:
-            performance_statistics[f'train_acc{epoch}'] = train_acc
-        if test_acc:
-            performance_statistics[f'test_acc_{epoch}'] = test_acc
-
-
         # save the model
-        if epoch % config.save_freq == 0:
+        if epoch-1 % config.save_freq == config.save_freq - 1:
             save_file = os.path.join(
-                config.save_folder, 'checkpoints_epoch_{epoch}.pth'.format(epoch=epoch))
+                config.save_folder, 
+                'checkpoints_epoch_{epoch}.pth'.format(epoch=epoch))
             save_model(model, optimizer, config, epoch, save_file)
+
+    # save the last model
+    save_file = os.path.join(config.save_folder, 'last.pth')
+    save_model(model, optimizer, scheduler, config, config.epochs, save_file)
 
     # Store the losses in a dataframe
     loss_df = pd.DataFrame(data=losses)
     # Save the loss dataframe in a excel
     loss_df.to_excel(os.path.join(config.eval_folder, losses_filename))
-    # Plot the losses
-    plot_loss_df(loss_df, config)
-
-    # save the last model
-    save_file = os.path.join(config.save_folder, 'last.pth')
-    save_model(model, optimizer, config, config.epochs, save_file)
 
 if __name__ == '__main__':
     main()

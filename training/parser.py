@@ -1,7 +1,13 @@
+"""
+definition for parsing functions for initiating code
+"""
 import argparse
 import os
 
 def parse_option():
+    """
+    Parser for command line calls of the train function
+    """
     parser = argparse.ArgumentParser('argument for training')
 
     # Suggested default setting
@@ -42,7 +48,7 @@ def parse_option():
 
     # network
     parser.add_argument('--network', type=str, default='efficientnet',
-                        choices=['efficientnet', "senet", "swin", "DeLF+SVM"],
+                        choices=['efficientnet-B3', "senet", "swin", "DeLF+SVM"],
                         help='network to train')
     parser.add_argument('--from_pretrained', type=str, default='True',
                         choices=['True', "False"],
@@ -73,10 +79,7 @@ def parse_option():
                config.lr_decay_rate, config.step_size)
 
     config.save_folder = os.path.join(config.model_path, config.model_name)
-    if not os.path.isdir(config.save_folder):
-        os.makedirs(config.save_folder)
-
-    if not os.path.isdir(config.eval_folder):
-        os.makedirs(config.eval_folder)
+    os.makedirs(config.save_folder, exist_ok=True)
+    os.makedirs(config.eval_folder, exist_ok=True)
 
     return config

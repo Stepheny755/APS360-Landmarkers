@@ -2,23 +2,13 @@ import os
 import sys
 
 import time
-import numpy as np
-
-import torch
-import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
-import collections
-
 import warnings
 warnings.filterwarnings("ignore")
 
-from utils import AverageMeter
-from datetime import datetime
-from classifier import get_model, accuracyADP
+import torch
 
 
-
-def one_epoch_iteration(train_loader, test_loader, model, criterion,
+def one_epoch_iteration(train_loader, val_loader, model, criterion,
                         optimizer, epoch, config, writer):
 
     start_time = time.time()
@@ -28,34 +18,32 @@ def one_epoch_iteration(train_loader, test_loader, model, criterion,
                                   optimizer, epoch, config, writer)
 
     """-----------------Testing------------------"""
-    test_loss, test_acc = test(test_loader, model, criterion, config, writer)
+    val_loss, val_acc = validate(val_loader, model, criterion, epoch,
+                                   config, writer)
     end_time = time.time()
 
     print('epoch {}\t'
           'Train_loss {:.3f}\t'
           'Train_acc {} \t'
-          'Test_loss {:.3f} \t'
-          'Test_acc {} \t'
+          'Val_loss {:.3f} \t'
+          'Val_acc {} \t'
           'total_time {:.2f}'.format(epoch,
-                                     train_loss[2] if isinstance(train_loss, list) else train_loss,
+                                     train_loss,
                                      train_acc,
-                                     test_loss[2] if isinstance(test_loss, list) else test_loss,
-                                     test_acc,
+                                     val_loss,
+                                     val_acc,
                                      end_time - start_time))
     sys.stdout.flush()
 
-    return train_loss, test_loss, train_acc, test_acc
+    return train_loss, val_loss, train_acc, val_acc
 
-def train(train_loader, model, criterion, optimizer, epoch, config, param_history):
+def train(train_loader, model, criterion, optimizer, epoch, config, writer):
     """one epoch training"""
     model.train()
 
-    losses = AverageMeter()
-    train_acc = None
-    if config.loss == "CrossEntropyLoss":
-        train_acc = AverageMeter()
+    losses = 0
+    train_acc = 0
         
-
     """___________________Training____________________"""
 
     for idx, (images, labels) in enumerate(train_loader):
@@ -65,55 +53,79 @@ def train(train_loader, model, criterion, optimizer, epoch, config, param_histor
 
         # compute loss
 
-        if config.loss == 'MCLoss':
-            features, gaussian_params = model(images)
-            NLLLoss, GJSDLoss, train_loss = criterion(inp=features,
-                                                      pi=gaussian_params['pi'],
-                                                      mean=gaussian_params['mean'],
-                                                      var=gaussian_params['var'],
-                                                      labels=labels,
-                                                      var_weights=model.gmm.var_weight)
-        elif config.loss == "MultiLabelSoftMarginLoss":
+        if config.loss == "CrossEntropyLoss":
             outputs = model(images)
-            train_loss = criterion(outputs, labels)
-            if config.dataset == "ADP-Release1":
-                preds = (F.sigmoid(torch.tensor(outputs)) > 0.5).int()
-
-                acc1, acc5 = accuracyADP(preds, labels)
-                train_acc.update(acc1.double() / (labels.shape[0] * labels.shape[1]), images.shape[0])
+            loss = criterion(outputs, labels)
+            if config.dataset == "GLRv2":
+                preds = torch.argmax(outputs, dim=1)
+                acc = torch.sum(preds == labels) / batch_size
+                train_acc += acc
             else:
-                raise NotImplementedError("Only ADP supported right now")
+                raise NotImplementedError("Only GLRv2 supported right now")
 
         else:
-            raise ValueError('contrastive method not supported: {}'.
+            raise ValueError('Loss method not supported: {}'.
                              format(config.loss))
 
         # update metric
-        losses.update(train_loss.item(), batch_size)
+        losses += loss.item()
 
-        if config.loss == "MCLoss":
-            NLLLosses.update(NLLLoss.item(), batch_size)
-            GJSDLosses.update(GJSDLoss.item(), batch_size)
-
-        # SGD with momentum
+        # optimize network
         optimizer.zero_grad()
-        train_loss.backward()
+        loss.backward()
         optimizer.step()
 
-        if not param_history == None and not config.fine_tune:
-            param_history.update(pi=gaussian_params['pi'].clone().detach().cpu(),
-                                 mu=gaussian_params['mean'].clone().detach().cpu(),
-                                 sigma=gaussian_params['var'].clone().detach().cpu())
-
         # print info
-        if (idx + 1) % config.print_freq == 0:
-            print('Train: [{0}][{1}/{2}]\t'
-                  'loss {loss.val:.3f} ({loss.avg:.3f})'.format(
-                        epoch, idx + 1, len(train_loader),  loss=losses))
-            sys.stdout.flush()
-    if config.loss == "MCLoss":
-        return list([NLLLosses.avg, GJSDLosses.avg, losses.avg]), train_acc
-    elif config.loss == "MultiLabelSoftMarginLoss":
-        return float(losses.avg), train_acc.avg.item()
-    else:
-        return losses, train_acc
+        if (idx + 1) % config.print_freq == config.print_freq - 1:
+            writer.add_scalar('training loss',
+                              losses / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
+                              epoch * len(train_loader) + idx)
+            writer.add_scalar('training acc1',
+                              train_acc / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
+                              epoch * len(train_loader) + idx)
+
+    return losses/(idx+1), train_acc/(idx+1)
+
+def validate(val_loader, model, criterion, epoch, config, writer):
+    """one epoch evaluation"""
+    model.eval()
+
+    losses = 0
+    val_acc = 0
+        
+    """___________________Evaluating____________________"""
+    with torch.no_grad():
+        for idx, (images, labels) in enumerate(val_loader):
+            images = images.cuda(non_blocking=True)
+            labels = labels.cuda(non_blocking=True)
+            batch_size = labels.shape[0]
+
+            # compute loss
+
+            if config.loss == "CrossEntropyLoss":
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                if config.dataset == "GLRv2":
+                    preds = torch.argmax(outputs, dim=1)
+                    acc = torch.sum(preds == labels) / batch_size
+                    val_acc += acc
+                else:
+                    raise NotImplementedError("Only GLRv2 supported right now")
+
+            else:
+                raise ValueError('Loss method not supported: {}'.
+                                format(config.loss))
+
+            # update metric
+            losses += loss.item()
+
+            # print info
+            if (idx + 1) % config.print_freq == config.print_freq - 1:
+                writer.add_scalar('validation loss',
+                                losses / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
+                                epoch * len(val_loader) + idx)
+                writer.add_scalar('validation acc1',
+                                val_acc / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
+                                epoch * len(val_loader) + idx)
+
+    return losses/(idx+1), val_acc/(idx+1)
