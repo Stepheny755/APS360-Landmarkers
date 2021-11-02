@@ -8,8 +8,10 @@ def set_loader(config):
 def set_model(config, train_loader):
     model = None
     if config.network == "efficientnet-B3":
-        model = EfficientNet.from_pretrained(config.network, 
-        num_classes=len(list(train_loader.class_to_idx.values())))
+        model = EfficientNet.from_pretrained(
+            config.network, 
+            num_classes=len(list(train_loader.class_to_idx.values()))
+        )
     elif config.network == "senet":
         model = None
     elif config.network == "swin":

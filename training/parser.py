@@ -41,13 +41,13 @@ def parse_option():
                         help='momentum')
 
     # Dataset
-    parser.add_argument('--dataset', type=str, default='GLM',
-                        help='options: ADP-Release1')
+    parser.add_argument('--dataset', type=str, default='GLRv2',
+                        help='options: GLRv2')
     parser.add_argument('--data_folder', type=str, default=None,
                         help='path to the parent containing the dataset folder')
 
     # network
-    parser.add_argument('--network', type=str, default='efficientnet',
+    parser.add_argument('--network', type=str, default='efficientnet-B3',
                         choices=['efficientnet-B3', "senet", "swin", "DeLF+SVM"],
                         help='network to train')
     parser.add_argument('--from_pretrained', type=str, default='True',
