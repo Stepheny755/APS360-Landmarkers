@@ -17,7 +17,7 @@ from training import (one_epoch_iteration,
 
 def main():
     config = parse_option()
-
+    print(config)
     # build data loader
     train_loader, val_loader, test_loader = set_loader(config)
 

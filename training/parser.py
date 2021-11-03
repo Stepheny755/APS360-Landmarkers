@@ -23,11 +23,11 @@ def parse_option():
                         help='number of training epochs')
 
     # Optimization
-    parser.add_argument('--learning_rate', type=float, default=0.1,
+    parser.add_argument('--learning_rate', type=float, default=3e-4,
                         help='initial learning rate')
-    parser.add_argument('--optimizer', type=str, default='SGD',
+    parser.add_argument('--optimizer', type=str, default='Adam',
                         help='options: SGD, AdamP, Adam')
-    parser.add_argument('--scheduler', type=str, default='StepLR',
+    parser.add_argument('--scheduler', type=str, default='None',
                         help='options: StepLR, MultiStepLR')
     parser.add_argument('--step_size', type=int, default=15,
                         help='period of learning rate decay')
@@ -47,33 +47,34 @@ def parse_option():
                         help='path to the parent containing the dataset folder')
 
     # network
-    parser.add_argument('--network', type=str, default='efficientnet-B3',
-                        choices=['efficientnet-B3', "senet", "swin", "DeLF+SVM"],
+    parser.add_argument('--network', type=str, default='efficientnet-b0',
+                        choices=['efficientnet-b0', "senet", "swin", "DeLF+SVM"],
                         help='network to train')
     parser.add_argument('--from_pretrained', type=str, default='True',
                         choices=['True', "False"],
                         help='whether the model is pretrained or not')
     parser.add_argument('--checkpoint_path', type=str, default=None,
                         help='path to checkpoint to load')
+    parser.add_argument('--freeze_layers', type=str, default="True",
+                        choices=['True', "False"],
+                        help='freeze all layers except last')
 
     # Loss function and its arguments
     parser.add_argument('--loss', type=str, default='CrossEntropyLoss',
                         choices=['CrossEntropyLoss'], help='choose loss function')
 
     # Augmentation methods and its arguments
-    parser.add_argument('--color_augmentation', type=str, default='White-Balance',
-                        choices=['White-Balance', 'Color-Distortion'],
+    parser.add_argument('--color_augmentation', type=str, default='Color-Distortion',
+                        choices=['White-Balance', 'Color-Distortion', 'None'],
                         help='choose a color augmentation method')
-    parser.add_argument('--distortion_factor', type=float, default=0.5,
+    parser.add_argument('--distortion_factor', type=float, default=0.3,
                         help='choose a distortion factor for the color augmentation; range - (0, 1]')
 
     config = parser.parse_args()
 
     # set the path to save the trained models
     config.model_path = './save/{}_models'.format(config.dataset)
-    config.eval_folder = './eval/lr={}_step_size_{}_momentum_{}_decay_rate_{}'.\
-        format(config.learning_rate, config.step_size,
-               config.momentum, config.lr_decay_rate)
+    config.eval_folder = './eval'
     config.model_name = '{}_{}_{}_lr_{}_decay_{}_step_size_{}'. \
         format(config.loss, config.dataset, config.network, config.learning_rate,
                config.lr_decay_rate, config.step_size)

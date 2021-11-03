@@ -1,17 +1,63 @@
-from numpy.lib.npyio import save
 import torch
+import torch.nn as nn
+from torch.utils.data.sampler import SubsetRandomSampler
+
+from .transforms import get_transforms
+from .datasets import GLRv2
 from .models.efficientnet.efficient_net import EfficientNet
 
 def set_loader(config):
-    pass
+
+    train_transform, test_transform = get_transforms(
+        dataset = config.dataset,
+        color_aug = config.color_augmentation,
+        dist_factor = config.distortion_factor
+    )
+
+    train_dataset = GLRv2(config.data_folder, transform=train_transform)
+    test_dataset = GLRv2(config.data_folder, transform=test_transform)
+   
+    assert list(train_dataset.test_indices) == list(test_dataset.test_indices)
+    #create the SubsetRandomSamplers
+    train_sampler = SubsetRandomSampler(train_dataset.train_indices)
+    val_sampler = SubsetRandomSampler(test_dataset.val_indices)
+    test_sampler = SubsetRandomSampler(test_dataset.test_indices)
+
+    #create DataLoader objects to be used in training
+    train_loader = torch.utils.data.DataLoader(
+        dataset=train_dataset, 
+        shuffle=False, 
+        batch_size=config.batch_size, 
+        sampler=train_sampler, 
+        num_workers=config.num_workers)
+    
+    val_loader = torch.utils.data.DataLoader(
+        dataset=test_dataset, 
+        shuffle=False, 
+        batch_size=config.batch_size, 
+        sampler=val_sampler, 
+        num_workers=config.num_workers)
+    
+    test_loader = torch.utils.data.DataLoader(
+        dataset=test_dataset, 
+        shuffle=False, 
+        batch_size=config.batch_size, 
+        sampler=test_sampler, 
+        num_workers=config.num_workers)
+    
+    return train_loader, val_loader, test_loader
 
 def set_model(config, train_loader):
     model = None
-    if config.network == "efficientnet-B3":
+    if "efficientnet" in config.network:
         model = EfficientNet.from_pretrained(
             config.network, 
-            num_classes=len(list(train_loader.class_to_idx.values()))
+            num_classes=len(list(train_loader.dataset.class_to_idx.values()))
         )
+        if config.freeze_layers == "True":
+            for param in model.parameters():
+                param.requires_grad = False
+            model._fc = nn.Linear(model._fc.in_features, model._fc.out_features)
     elif config.network == "senet":
         model = None
     elif config.network == "swin":
@@ -21,7 +67,15 @@ def set_model(config, train_loader):
     else:
         raise NotImplementedError(
             f"{config.network} not implemented!")
-    return model
+    
+    criterion = None
+    if config.loss == 'CrossEntropyLoss':
+        criterion = torch.nn.CrossEntropyLoss()
+    else:
+        raise NotImplementedError(
+            f"{config.loss} not implemented!")
+
+    return model.cuda(), criterion
 
 def set_optimizer(config, model):
     optimizer = None
