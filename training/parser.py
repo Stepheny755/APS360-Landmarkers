@@ -53,8 +53,8 @@ def parse_option():
     parser.add_argument('--from_pretrained', type=str, default='True',
                         choices=['True', "False"],
                         help='whether the model is pretrained or not')
-    parser.add_argument('--checkpoint_path', type=str, default=None,
-                        help='path to checkpoint to load')
+    # parser.add_argument('--checkpoint_path', type=str, default=None,
+    #                     help='path to checkpoint to load')
     parser.add_argument('--freeze_layers', type=str, default="True",
                         choices=['True', "False"],
                         help='freeze all layers except last')

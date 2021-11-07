@@ -79,10 +79,10 @@ def train(train_loader, model, criterion, optimizer, epoch, config, writer):
         if (idx + 1) % config.print_freq == config.print_freq - 1:
             writer.add_scalar('training loss',
                               losses / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
-                              epoch * len(train_loader) + idx)
+                              (epoch - 1) * len(train_loader) + idx)
             writer.add_scalar('training acc1',
                               train_acc / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
-                              epoch * len(train_loader) + idx)
+                              (epoch - 1) * len(train_loader) + idx)
 
     return losses/(idx+1), train_acc/(idx+1)
 
@@ -123,9 +123,9 @@ def validate(val_loader, model, criterion, epoch, config, writer):
             if (idx + 1) % config.print_freq == config.print_freq - 1:
                 writer.add_scalar('validation loss',
                                 losses / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
-                                epoch * len(val_loader) + idx)
+                                (epoch - 1) * len(val_loader) + idx)
                 writer.add_scalar('validation acc1',
                                 val_acc / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
-                                epoch * len(val_loader) + idx)
+                                (epoch - 1) * len(val_loader) + idx)
 
     return losses/(idx+1), val_acc/(idx+1)
