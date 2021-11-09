@@ -33,7 +33,7 @@ class GLRv2_5(ImageFolder):
     test_ratio = 0.15
 
     def __init__(self, root, transform=None):
-        super(GLRv2, self).__init__(root=os.path.join(root, self.folder_name), transform=transform)
+        super(GLRv2_5, self).__init__(root=os.path.join(root, self.folder_name), transform=transform)
         
         #get indices to later throw into the random sampler
         indices = np.arange(len(self))

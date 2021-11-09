@@ -56,7 +56,7 @@ def train(train_loader, model, criterion, optimizer, epoch, config, writer):
         if config.loss == "CrossEntropyLoss":
             outputs = model(images)
             loss = criterion(outputs, labels)
-            if config.dataset == "GLRv2":
+            if "GLRv2" in config.dataset:
                 preds = torch.argmax(outputs, dim=1)
                 acc = torch.sum(preds == labels) / batch_size
                 train_acc += acc

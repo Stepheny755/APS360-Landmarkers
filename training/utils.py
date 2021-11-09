@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from .transforms import get_transforms
-from .datasets import GLRv2
+from .datasets import GLRv2, GLRv2_5
 from .models.efficientnet.efficient_net import EfficientNet
 
 def set_loader(config):
@@ -14,36 +14,43 @@ def set_loader(config):
         dist_factor = config.distortion_factor
     )
 
-    train_dataset = GLRv2(config.data_folder, transform=train_transform)
-    test_dataset = GLRv2(config.data_folder, transform=test_transform)
-   
-    assert list(train_dataset.test_indices) == list(test_dataset.test_indices)
-    #create the SubsetRandomSamplers
-    train_sampler = SubsetRandomSampler(train_dataset.train_indices)
-    val_sampler = SubsetRandomSampler(test_dataset.val_indices)
-    test_sampler = SubsetRandomSampler(test_dataset.test_indices)
+    if "GLRv2" in config.dataset:
+        if config.dataset == "GLRv2":
+            train_dataset = GLRv2(config.data_folder, transform=train_transform)
+            test_dataset = GLRv2(config.data_folder, transform=test_transform)
+        elif config.dataset == "GLRv2_5":
+            train_dataset = GLRv2_5(config.data_folder, transform=train_transform)
+            test_dataset = GLRv2_5(config.data_folder, transform=test_transform)
+    
+        assert list(train_dataset.test_indices) == list(test_dataset.test_indices)
+        #create the SubsetRandomSamplers
+        train_sampler = SubsetRandomSampler(train_dataset.train_indices)
+        val_sampler = SubsetRandomSampler(test_dataset.val_indices)
+        test_sampler = SubsetRandomSampler(test_dataset.test_indices)
 
-    #create DataLoader objects to be used in training
-    train_loader = torch.utils.data.DataLoader(
-        dataset=train_dataset, 
-        shuffle=False, 
-        batch_size=config.batch_size, 
-        sampler=train_sampler, 
-        num_workers=config.num_workers)
-    
-    val_loader = torch.utils.data.DataLoader(
-        dataset=test_dataset, 
-        shuffle=False, 
-        batch_size=config.batch_size, 
-        sampler=val_sampler, 
-        num_workers=config.num_workers)
-    
-    test_loader = torch.utils.data.DataLoader(
-        dataset=test_dataset, 
-        shuffle=False, 
-        batch_size=config.batch_size, 
-        sampler=test_sampler, 
-        num_workers=config.num_workers)
+        #create DataLoader objects to be used in training
+        train_loader = torch.utils.data.DataLoader(
+            dataset=train_dataset, 
+            shuffle=False, 
+            batch_size=config.batch_size, 
+            sampler=train_sampler, 
+            num_workers=config.num_workers)
+        
+        val_loader = torch.utils.data.DataLoader(
+            dataset=test_dataset, 
+            shuffle=False, 
+            batch_size=config.batch_size, 
+            sampler=val_sampler, 
+            num_workers=config.num_workers)
+        
+        test_loader = torch.utils.data.DataLoader(
+            dataset=test_dataset, 
+            shuffle=False, 
+            batch_size=config.batch_size, 
+            sampler=test_sampler, 
+            num_workers=config.num_workers)
+    else: 
+        raise NotImplementedError(f"{config.dataset} not implemented!")
     
     return train_loader, val_loader, test_loader
 
