@@ -33,7 +33,7 @@ class Data_Splitting():
         # print(self.resolve_img_path('17660ef415d37059'))
         # print(self.resolve_img_dir('17660ef415d37059'))
         # self.save_ex1(1,"/mnt/d/Datasets/GoogleLandmarkRecognition2021/landmark-recognition-1perclass")
-        print(list(self.imgs_per_class.keys())[:10])
+        # print(list(self.imgs_per_class.keys())[:10])
 
 
     def load_csv(self):
@@ -132,7 +132,7 @@ class Data_Splitting():
         # Add image id to list of image id's in new dataset
         return ({lm_id: lm_index})
 
-    def save_ex_n(self,lm_index:int,num_max=500):
+    def save_ex_n(self,lm_index:int,num_max=5):
         
         print("Saving samples for class "+str(lm_index))
         
