@@ -64,7 +64,7 @@ def set_model(config, train_loader):
         if config.freeze_layers == "True":
             for param in model.parameters():
                 param.requires_grad = False
-            model._fc = nn.Linear(model._fc.in_features, model._fc.out_features)
+        model._fc = nn.Linear(model._fc.in_features, model._fc.out_features)
     elif config.network == "senet":
         model = None
     elif config.network == "swin":
