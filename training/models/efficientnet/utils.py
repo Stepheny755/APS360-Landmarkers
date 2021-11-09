@@ -274,7 +274,7 @@ def efficientnet(width_coefficient=None, depth_coefficient=None, dropout_rate=0.
         depth_divisor=8,
         min_depth=None,
         image_size=image_size,
-        feature_extractor=True,
+        feature_extractor=False,
     )
 
     return blocks_args, global_params
