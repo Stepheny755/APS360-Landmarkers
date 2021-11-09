@@ -120,7 +120,7 @@ def save_model(model, optimizer, scheduler, config, epoch, save_file):
         "optimizer_state_dict" : optimizer.state_dict(),
         "epoch" : epoch,
         "config" : config,
-        "scheduler" : scheduler.state_dict()
+        "scheduler" : scheduler.state_dict() if scheduler else scheduler
     }
 
     torch.save(save_dict, save_file)

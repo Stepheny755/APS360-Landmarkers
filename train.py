@@ -65,11 +65,11 @@ def main():
         losses['learning_rate'].append(optimizer.param_groups[0]['lr'])
 
         # save the model
-        if epoch-1 % config.save_freq == config.save_freq - 1:
+        if (epoch-1) % config.save_freq == config.save_freq - 1:
             save_file = os.path.join(
                 config.save_folder, 
                 'checkpoints_epoch_{epoch}.pth'.format(epoch=epoch))
-            save_model(model, optimizer, config, epoch, save_file)
+            save_model(model, optimizer, scheduler, config, epoch, save_file)
 
     # save the last model
     save_file = os.path.join(config.save_folder, 'last.pth')
