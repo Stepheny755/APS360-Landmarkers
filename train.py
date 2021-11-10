@@ -49,6 +49,7 @@ def main():
     writer = SummaryWriter(f'{os.path.join(config.eval_folder, "runs", losses_filename.replace(".xlsx", ""))}')
 
     best_val_acc = 0
+    early_stopping_counter = 0
 
     """___________________Training____________________"""
     for epoch in range(1, config.epochs + 1):
@@ -74,9 +75,17 @@ def main():
             save_model(model, optimizer, scheduler, config, epoch, save_file)
 
         if val_acc > best_val_acc:
+            early_stopping_counter = 0
             best_val_acc = val_acc
             save_file = os.path.join(config.save_folder, 'best.pth')
             save_model(model, optimizer, scheduler, config, epoch, save_file)
+        else:
+            early_stopping_counter += 1
+            if config.early_stopping > 0:
+                if early_stopping_counter >= config.early_stopping:
+                    print(f"ran for {early_stopping_counter} without increase in val acc")
+                    print(f"stopping early...")
+                    break
 
     # save the last model
     save_file = os.path.join(config.save_folder, 'last.pth')
