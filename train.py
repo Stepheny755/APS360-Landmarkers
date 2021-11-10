@@ -48,6 +48,7 @@ def main():
                       ".xlsx".replace(' ', '-')
     writer = SummaryWriter(f'{os.path.join(config.eval_folder, "runs", losses_filename.replace(".xlsx", ""))}')
 
+    best_val_acc = 0
 
     """___________________Training____________________"""
     for epoch in range(1, config.epochs + 1):
@@ -70,6 +71,11 @@ def main():
             save_file = os.path.join(
                 config.save_folder, 
                 'checkpoints_epoch_{epoch}.pth'.format(epoch=epoch))
+            save_model(model, optimizer, scheduler, config, epoch, save_file)
+
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            save_file = os.path.join(config.save_folder, 'best.pth')
             save_model(model, optimizer, scheduler, config, epoch, save_file)
 
     # save the last model
