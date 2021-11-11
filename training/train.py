@@ -56,10 +56,10 @@ def train(train_loader, model, criterion, optimizer, epoch, config, writer):
         if config.loss == "CrossEntropyLoss":
             outputs = model(images)
             loss = criterion(outputs, labels)
-            if config.dataset == "GLRv2":
+            if "GLRv2" in config.dataset:
                 preds = torch.argmax(outputs, dim=1)
                 acc = torch.sum(preds == labels) / batch_size
-                train_acc += acc
+                train_acc += acc.item()
             else:
                 raise NotImplementedError("Only GLRv2 supported right now")
 
@@ -105,10 +105,10 @@ def validate(val_loader, model, criterion, epoch, config, writer):
             if config.loss == "CrossEntropyLoss":
                 outputs = model(images)
                 loss = criterion(outputs, labels)
-                if config.dataset == "GLRv2":
+                if "GLRv2" in config.dataset:
                     preds = torch.argmax(outputs, dim=1)
                     acc = torch.sum(preds == labels) / batch_size
-                    val_acc += acc
+                    val_acc += acc.item()
                 else:
                     raise NotImplementedError("Only GLRv2 supported right now")
 
@@ -119,13 +119,13 @@ def validate(val_loader, model, criterion, epoch, config, writer):
             # update metric
             losses += loss.item()
 
-            # print info
-            if (idx + 1) % config.print_freq == config.print_freq - 1:
-                writer.add_scalar('validation loss',
-                                losses / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
-                                (epoch - 1) * len(val_loader) + idx)
-                writer.add_scalar('validation acc1',
-                                val_acc / (config.print_freq * ((idx + 1) // config.print_freq + 1)),
-                                (epoch - 1) * len(val_loader) + idx)
+        # print info
+
+        writer.add_scalar('validation loss',
+                        losses / (idx + 1),
+                        epoch)
+        writer.add_scalar('validation acc1',
+                        val_acc / (idx + 1),
+                        epoch)
 
     return losses/(idx+1), val_acc/(idx+1)

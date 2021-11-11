@@ -25,7 +25,7 @@ def get_transforms(
     horizontal_shift: float = 0.1,
     vertical_shift: float = 0.1):
 
-    if dataset == 'GLRv2':
+    if 'GLRv2' in dataset:
         if color_aug == 'Color-Distortion':
             train_transform = transforms.Compose([
                 transforms.RandomHorizontalFlip(p=horizontal_flipping),
