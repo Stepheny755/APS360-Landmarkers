@@ -26,6 +26,10 @@ class Data_Splitting():
         # Enable multiprocessing
         self.mp = True
 
+        # Enable preprocessing
+        # Preprocessing includes resize and centercrop
+        self.preprocess = True
+
         # print((self.classes[1]))
         # print((self.classes[1][2]["id"])) 
         # print(self.get_lm_from_id(1,2))
@@ -34,6 +38,10 @@ class Data_Splitting():
         # print(self.resolve_img_dir('17660ef415d37059'))
         # self.save_ex1(1,"/mnt/d/Datasets/GoogleLandmarkRecognition2021/landmark-recognition-1perclass")
         # print(list(self.imgs_per_class.keys())[:10])
+        if(self.preprocess):
+            transforms = torch.nn.Sequential(
+                transforms.
+            )
 
 
     def load_csv(self):
@@ -109,6 +117,34 @@ class Data_Splitting():
                 data.append(self.save_ex_n(i))
             data = [item for sublist in data for item in sublist]
             self.save_csv(data,"train")
+
+    def create_split_test(self):
+            
+        # Create directory if does not exist
+        if not(os.path.exists(self.out_path)):
+            os.makedirs(self.out_path)
+
+        # print(self.classes)
+        test_classes = 2
+        save_indices = list(self.imgs_per_class.keys())[:2]
+
+        if(self.mp):
+            print("Creating split with {} workers and saving to \"{}\"".format(num_workers,output_path))
+
+            with multiprocessing.Pool(processes=int(self.num_workers)) as pool:
+                data = pool.map(self.save_ex_n,save_indices)
+
+                data = [item for sublist in data for item in sublist]
+                self.save_csv(data,"train")
+        else:
+            print("Creating split with 1 worker and saving to \"{}\"".format(output_path))
+
+            data = []
+            for i in save_indices:
+                data.append(self.save_ex_n(i))
+            data = [item for sublist in data for item in sublist]
+            self.save_csv(data,"train")
+
 
     def save_ex(self,lm_index:int,img_index:int=0):
 
@@ -204,8 +240,10 @@ if(__name__=="__main__"):
     d = Data_Splitting(dataset_path,output_path,num_workers)
 
     # Split data to a smaller dataset saved at output_path and with N samples
-    d.create_split_1k()
+    # d.create_split_1k()
     # d.save_csv([{123:"asd1qgasf"},{245:"agawfgaxscva"},{456:"asfhqowifh"}],"test")
+
+    d.create_split_test()
 
 
 
