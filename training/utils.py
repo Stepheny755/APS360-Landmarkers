@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
+from adamp import AdamP
 
 from .transforms import get_transforms
 from .datasets import GLRv2, GLRv2_5, GLRv2_5_preprocessed
@@ -114,7 +115,7 @@ def set_optimizer(config, model):
             momentum=config.momentum,
             weight_decay=config.weight_decay)
     elif config.optimizer == "AdamP":
-        optimizer = torch.optim.AdamP(
+        optimizer = AdamP(
             model.parameters(), 
             lr=config.learning_rate,
             weight_decay=config.weight_decay)
