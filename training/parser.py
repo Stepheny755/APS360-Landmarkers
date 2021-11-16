@@ -52,7 +52,7 @@ def parse_option():
 
     # network
     parser.add_argument('--network', type=str, default='efficientnet-b0',
-                        choices=['efficientnet-b0', "senet", "swin", "ResNet+SVM"],
+                        choices=['efficientnet-b0', "senet-50", "swin", "ResNet+SVM"],
                         help='network to train')
     parser.add_argument('--from_pretrained', type=str, default='True',
                         choices=['True', "False"],

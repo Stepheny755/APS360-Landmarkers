@@ -5,6 +5,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from .transforms import get_transforms
 from .datasets import GLRv2, GLRv2_5
 from .models.efficientnet.efficient_net import EfficientNet
+from .models.senet.se_resnet import se_resnet50
 
 def set_loader(config):
 
@@ -65,8 +66,14 @@ def set_model(config, train_loader):
             for param in model.parameters():
                 param.requires_grad = False
         model._fc = nn.Linear(model._fc.in_features, model._fc.out_features)
-    elif config.network == "senet":
-        model = None
+    elif config.network == "senet-50":
+        model = se_resnet50(
+            num_classes=len(list(train_loader.dataset.class_to_idx.values()))
+        )
+        if config.freeze_layers == "True":
+            for param in model.parameters():
+                param.requires_grad = False
+        model.fc = nn.Linear(model.fc.in_features, model.fc.out_features)
     elif config.network == "swin":
         model = None
     elif config.network == "DeLF+SVM":

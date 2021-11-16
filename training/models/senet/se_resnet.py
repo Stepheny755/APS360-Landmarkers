@@ -4,6 +4,7 @@
 import torch.nn as nn
 from torchvision.models import ResNet
 from se_module import SELayer
+from torch.hub import load_state_dict_from_url
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -117,19 +118,16 @@ def se_resnet34(num_classes=1_000, feature_extractor=True):
         model.avgpool = nn.AdaptiveAvgPool2d(1)
     return model
 
-
-def se_resnet50(num_classes=1_000, feature_extractor=True):
+def se_resnet50(num_classes=1_000, pretrained=False):
     """Constructs a ResNet-50 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    if feature_extractor:
-        model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
-        modules = list(model.children())[:-1]  # remove fc
-        model=nn.Sequential(*modules, nn.Flatten())  # add flatten
-    else:
-        model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
-        model.avgpool = nn.AdaptiveAvgPool2d(1)
+    model = ResNet(SEBottleneck, [3, 4, 6, 3], num_classes=num_classes)
+    model.avgpool = nn.AdaptiveAvgPool2d(1)
+    if pretrained:
+        model.load_state_dict(load_state_dict_from_url(
+            "https://github.com/moskomule/senet.pytorch/releases/download/archive/seresnet50-60a8950a85b2b.pkl"))
     return model
 
 
