@@ -61,22 +61,33 @@ def set_loader(config):
 def set_model(config, train_loader):
     model = None
     if "efficientnet" in config.network:
-        model = EfficientNet.from_pretrained(
-            config.network, 
-            num_classes=len(list(train_loader.dataset.class_to_idx.values()))
-        )
+        if config.from_pretrained:
+            model = EfficientNet.from_pretrained(
+                config.network, 
+                num_classes=len(list(train_loader.dataset.class_to_idx.values()))
+            )
+        else:
+            model = EfficientNet.from_name(
+                config.network, 
+                override_params={
+                    "num_classes": len(list(train_loader.dataset.class_to_idx.values()))
+                }
+            )
         if config.freeze_layers == "True":
             for param in model.parameters():
                 param.requires_grad = False
         model._fc = nn.Linear(model._fc.in_features, model._fc.out_features)
+        
     elif config.network == "senet-50":
         model = se_resnet50(
-            num_classes=len(list(train_loader.dataset.class_to_idx.values()))
+            num_classes=len(list(train_loader.dataset.class_to_idx.values())),
+            pretrained=True if config.from_pretrained == "True" else False
         )
         if config.freeze_layers == "True":
             for param in model.parameters():
                 param.requires_grad = False
         model.fc = nn.Linear(model.fc.in_features, model.fc.out_features)
+
     elif config.network == "swin":
         model = None
     elif config.network == "DeLF+SVM":
