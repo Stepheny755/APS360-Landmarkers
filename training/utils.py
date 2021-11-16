@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from .transforms import get_transforms
-from .datasets import GLRv2, GLRv2_5
+from .datasets import GLRv2, GLRv2_5, GLRv2_5_preprocessed
 from .models.efficientnet.efficient_net import EfficientNet
 from .models.senet.se_resnet import se_resnet50
 
@@ -22,6 +22,9 @@ def set_loader(config):
         elif config.dataset == "GLRv2_5":
             train_dataset = GLRv2_5(config.data_folder, transform=train_transform)
             test_dataset = GLRv2_5(config.data_folder, transform=test_transform)
+        elif config.dataset == "GLRv2_5_preprocessed":
+            train_dataset = GLRv2_5_preprocessed(config.data_folder, transform=train_transform)
+            test_dataset = GLRv2_5_preprocessed(config.data_folder, transform=test_transform)
     
         assert list(train_dataset.test_indices) == list(test_dataset.test_indices)
         #create the SubsetRandomSamplers
