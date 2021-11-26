@@ -1,6 +1,7 @@
 ## Pytorch implementation of SENet
 ## Adapted from: https://github.com/moskomule/senet.pytorch/releases/tag/archive
 
+import torch
 import torch.nn as nn
 from torchvision.models import ResNet
 from torch.hub import load_state_dict_from_url
@@ -128,6 +129,25 @@ def se_resnet50(num_classes=1_000, pretrained=False):
     if pretrained:
         model.load_state_dict(load_state_dict_from_url(
             "https://github.com/moskomule/senet.pytorch/releases/download/archive/seresnet50-60a8950a85b2b.pkl"))
+    
+    def scuffed_embedder(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+
+        return x
+    
+    model.embedding = scuffed_embedder.__get__(model)
+
     return model
 
 

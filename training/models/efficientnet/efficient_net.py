@@ -204,6 +204,17 @@ class EfficientNet(nn.Module):
             x = self._fc(x)
         return x
 
+    def embedding(self, inputs):
+        bs = inputs.size(0)
+        # Convolution layers
+        x = self.extract_features(inputs)
+
+        # Pooling and final linear layer
+        x = self._avg_pooling(x)
+        x = x.view(bs, -1)
+        x = self._dropout(x)
+        return x
+
     @classmethod
     def from_name(cls, model_name, override_params=None):
         cls._check_model_name_is_valid(model_name)
