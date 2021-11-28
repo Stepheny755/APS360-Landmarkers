@@ -10,8 +10,11 @@ class Dataset_Transforms():
         self.center_crop_width = 224
         self.resize_width = 224
 
-    def data_transforms(self):
-        data_transform = transforms.Compose([
+    def get_data_transforms(self):
+        data_transforms = transforms.Compose([
             transforms.Resize(224),
             transforms.CenterCrop(224)
         ])
+
+        return data_transforms
+
