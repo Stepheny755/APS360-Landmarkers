@@ -1,4 +1,7 @@
+from dataset_transforms import Dataset_Transforms
+
 from dotenv import dotenv_values
+from PIL import Image
 
 import multiprocessing
 import pandas as pd
@@ -6,6 +9,7 @@ import numpy as np
 import shutil
 import csv
 import os
+
 
 
 class Data_Splitting():
@@ -24,24 +28,15 @@ class Data_Splitting():
         self.imgs_per_class = self.get_class_lengths()
 
         # Enable multiprocessing
-        self.mp = True
+        self.mp = False
 
         # Enable preprocessing
         # Preprocessing includes resize and centercrop
         self.preprocess = True
 
-        # print((self.classes[1]))
-        # print((self.classes[1][2]["id"])) 
-        # print(self.get_lm_from_id(1,2))
-        # print(type(self.classes))
-        # print(self.resolve_img_path('17660ef415d37059'))
-        # print(self.resolve_img_dir('17660ef415d37059'))
-        # self.save_ex1(1,"/mnt/d/Datasets/GoogleLandmarkRecognition2021/landmark-recognition-1perclass")
-        # print(list(self.imgs_per_class.keys())[:10])
         if(self.preprocess):
-            transforms = torch.nn.Sequential(
-                transforms.
-            )
+            self.dt = Dataset_Transforms()
+            self.transforms = self.dt.get_data_transforms()
 
 
     def load_csv(self):
@@ -118,8 +113,40 @@ class Data_Splitting():
             data = [item for sublist in data for item in sublist]
             self.save_csv(data,"train")
 
+    def create_split_1k_preprocess(self):
+        
+        if not(self.preprocess):
+            print("Error: preprocess set to False")
+            return
+
+        # Create directory if does not exist
+        if not(os.path.exists(self.out_path)):
+            os.makedirs(self.out_path)
+
+        # print(self.classes)
+        save_indices = list(self.imgs_per_class.keys())[:1000]
+
+        if(self.mp):
+            print("Creating split with {} workers and saving to \"{}\"".format(num_workers,output_path))
+
+            with multiprocessing.Pool(processes=int(self.num_workers)) as pool:
+                data = pool.map(self.process_img_n,save_indices)
+
+                data = [item for sublist in data for item in sublist]
+                self.save_csv(data,"train")
+        else:
+            print("Creating split with 1 worker and saving to \"{}\"".format(output_path))
+
+            data = []
+            for i in save_indices:
+                data.append(self.process_img_n(i))
+            data = [item for sublist in data for item in sublist]
+            self.save_csv(data,"train")
+
     def create_split_test(self):
             
+        self.out_path = output_path+str("-test")
+    
         # Create directory if does not exist
         if not(os.path.exists(self.out_path)):
             os.makedirs(self.out_path)
@@ -132,7 +159,7 @@ class Data_Splitting():
             print("Creating split with {} workers and saving to \"{}\"".format(num_workers,output_path))
 
             with multiprocessing.Pool(processes=int(self.num_workers)) as pool:
-                data = pool.map(self.save_ex_n,save_indices)
+                data = pool.map(self.process_img_n,save_indices)
 
                 data = [item for sublist in data for item in sublist]
                 self.save_csv(data,"train")
@@ -141,10 +168,48 @@ class Data_Splitting():
 
             data = []
             for i in save_indices:
-                data.append(self.save_ex_n(i))
+                data.append(self.process_img_n(i))
             data = [item for sublist in data for item in sublist]
             self.save_csv(data,"train")
 
+    def process_img(self,lm_index:int,img_index:int=0):
+        # Get the image id of the ith landmark (where i=img_index) 
+        # and landmark_id = lm_index
+        lm_id = self.get_lm_from_id(lm_index=lm_index,im_index=img_index)
+
+        # Resolve image path from the image id
+        img_path = self.resolve_img_path(lm_id)
+        full_path = os.path.join(self.data_path,"train",img_path)
+
+        # Path to save image example to
+        # We save each image in a folder with name landmark_id
+        save_path = os.path.join(self.out_path,str(lm_index))
+
+        # Get image from full dataset and save image to new location
+        if not(os.path.exists(save_path)):
+            os.makedirs(save_path)
+
+        img = Image.open(full_path)
+        img = self.transforms(img)
+        img.save(os.path.join(save_path,str(lm_id)+".jpg"))
+
+
+        # Add image id to list of image id's in new dataset
+        return ({lm_id: lm_index})
+
+    def process_img_n(self,lm_index:int,num_max=5):
+
+        print("Processing and saving samples for class "+str(lm_index))
+        
+        ex_list = []
+        num_imgs = min(num_max,self.imgs_per_class[lm_index])
+
+        # Loop through all examples for a given landmark id and save it
+        for i in range(0,num_imgs):
+            ex_list.append(self.process_img(lm_index=lm_index,img_index=i))
+
+        # Add list of  image id to list of image id's in new dataset
+        return ex_list
 
     def save_ex(self,lm_index:int,img_index:int=0):
 
@@ -243,7 +308,7 @@ if(__name__=="__main__"):
     # d.create_split_1k()
     # d.save_csv([{123:"asd1qgasf"},{245:"agawfgaxscva"},{456:"asfhqowifh"}],"test")
 
-    d.create_split_test()
+    d.create_split_1k_preprocess()
 
 
 
