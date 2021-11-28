@@ -4,11 +4,13 @@ import torch.nn as nn
 from torchsummary import summary
 
 from torch.utils.data.sampler import SubsetRandomSampler
+from adamp import AdamP
 
 from .transforms import get_transforms
-from .datasets import GLRv2, GLRv2_5
+from .datasets import GLRv2, GLRv2_5, GLRv2_5_preprocessed
 from .models.efficientnet.efficient_net import EfficientNet
 from .models.swintransformer.swin_transformer import SwinTransformer
+from .models.senet.se_resnet import se_resnet50
 
 def set_loader(config):
 
@@ -25,6 +27,9 @@ def set_loader(config):
         elif config.dataset == "GLRv2_5":
             train_dataset = GLRv2_5(config.data_folder, transform=train_transform)
             test_dataset = GLRv2_5(config.data_folder, transform=test_transform)
+        elif config.dataset == "GLRv2_5_preprocessed":
+            train_dataset = GLRv2_5_preprocessed(config.data_folder, transform=train_transform)
+            test_dataset = GLRv2_5_preprocessed(config.data_folder, transform=test_transform)
     
         assert list(train_dataset.test_indices) == list(test_dataset.test_indices)
         #create the SubsetRandomSamplers
@@ -61,16 +66,33 @@ def set_loader(config):
 def set_model(config, train_loader):
     model = None
     if "efficientnet" in config.network:
-        model = EfficientNet.from_pretrained(
-            config.network, 
-            num_classes=len(list(train_loader.dataset.class_to_idx.values()))
-        )
+        if config.from_pretrained:
+            model = EfficientNet.from_pretrained(
+                config.network, 
+                num_classes=len(list(train_loader.dataset.class_to_idx.values()))
+            )
+        else:
+            model = EfficientNet.from_name(
+                config.network, 
+                override_params={
+                    "num_classes": len(list(train_loader.dataset.class_to_idx.values()))
+                }
+            )
         if config.freeze_layers == "True":
             for param in model.parameters():
                 param.requires_grad = False
         model._fc = nn.Linear(model._fc.in_features, model._fc.out_features)
-    elif config.network == "senet":
-        model = None
+        
+    elif config.network == "senet-50":
+        model = se_resnet50(
+            num_classes=len(list(train_loader.dataset.class_to_idx.values())),
+            pretrained=True if config.from_pretrained == "True" else False
+        )
+        if config.freeze_layers == "True":
+            for param in model.parameters():
+                param.requires_grad = False
+        model.fc = nn.Linear(model.fc.in_features, model.fc.out_features)
+
     elif config.network == "swin":
         num_classes = len(list(train_loader.dataset.class_to_idx.values()))
         swin_config = {
@@ -139,7 +161,7 @@ def set_optimizer(config, model):
             momentum=config.momentum,
             weight_decay=config.weight_decay)
     elif config.optimizer == "AdamP":
-        optimizer = torch.optim.AdamP(
+        optimizer = AdamP(
             model.parameters(), 
             lr=config.learning_rate,
             weight_decay=config.weight_decay)

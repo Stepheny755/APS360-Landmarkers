@@ -71,13 +71,13 @@ def main():
         if (epoch-1) % config.save_freq == config.save_freq - 1:
             save_file = os.path.join(
                 config.save_folder, 
-                'checkpoints_epoch_{epoch}.pth'.format(epoch=epoch))
+                f'{cur_time}_checkpoints_epoch_{epoch}.pth')
             save_model(model, optimizer, scheduler, config, epoch, save_file)
 
         if val_acc > best_val_acc:
             early_stopping_counter = 0
             best_val_acc = val_acc
-            save_file = os.path.join(config.save_folder, 'best.pth')
+            save_file = os.path.join(config.save_folder, f'{cur_time}_best.pth')
             save_model(model, optimizer, scheduler, config, epoch, save_file)
         else:
             early_stopping_counter += 1
@@ -88,7 +88,7 @@ def main():
                     break
 
     # save the last model
-    save_file = os.path.join(config.save_folder, 'last.pth')
+    save_file = os.path.join(config.save_folder, f'{cur_time}_last.pth')
     save_model(model, optimizer, scheduler, config, config.epochs, save_file)
 
     # Store the losses in a dataframe

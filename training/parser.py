@@ -44,15 +44,15 @@ def parse_option():
                         default: -1 for no early stopping')
 
     # Dataset
-    parser.add_argument('--dataset', type=str, default='GLRv2_5',
-                        choices=['GLRv2', "GLRv2_5"],
+    parser.add_argument('--dataset', type=str, default='GLRv2_5_preprocessed',
+                        choices=['GLRv2', "GLRv2_5", "GLRv2_5_preprocessed"],
                         help='Pick a dataset, default: GLRv2_5')
     parser.add_argument('--data_folder', type=str, default=None,
                         help='path to the parent containing the dataset folder')
 
     # network
     parser.add_argument('--network', type=str, default='efficientnet-b0',
-                        choices=['efficientnet-b0', "senet", "swin", "ResNet+SVM"],
+                        choices=['efficientnet-b0', "senet-50", "swin", "ResNet+SVM"],
                         help='network to train')
     parser.add_argument('--from_pretrained', type=str, default='True',
                         choices=['True', "False"],
