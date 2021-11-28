@@ -34,24 +34,21 @@ def main():
     # build data loader
     train_loader, val_loader, test_loader = set_loader(config)
 
+    #check that it's effnet loaded
+    print(config.network)
+
     # build model and criterion
     model, criterion = set_model(config, test_loader)
+    print(type(model))
+
     # get some random training images
     dataiter = iter(test_loader)
     images, labels = dataiter.next()
-    # create grid of images
-    img_grid = torchvision.utils.make_grid(images)
+    query = images[0].unsqueeze(0)
+    print(query.shape) #should be 1x3x224x224
 
-    # show images
-    matplotlib_imshow(img_grid, one_channel=False)
-
-    # write to tensorboard
-    writer = SummaryWriter("./runs")
-    writer.add_image('dsafdsafdsa', img_grid)
-    images = images.cuda()
-    
-    writer.add_graph(model, images)
-    writer.close()
+    #test the retrieval function 
+    get_resnet_matches = get_knn_resnet(query, model, train_loader)
 
 if __name__ == '__main__':
     main()
