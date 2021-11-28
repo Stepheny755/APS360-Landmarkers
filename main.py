@@ -16,6 +16,7 @@ from training import (one_epoch_iteration,
                       set_optimizer, 
                       set_scheduler,
                       save_model)
+from retrieval import *
 
 def matplotlib_imshow(img, one_channel=False):
     if one_channel:
