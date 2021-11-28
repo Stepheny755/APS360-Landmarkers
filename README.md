@@ -38,9 +38,9 @@ swin_config = {
 'num_heads': [4, 8, 16, 32],  # (tuple(int)): Number of attention heads in different layers.
 }
 model = SwinTransformer(feature_extractor=swin_config['feature_extractor'],
-img_size=swin_config['img_size'],
-num_classes=swin_config['num_class'],
-embed_dim=swin_config['embed_dim'],
-depths=swin_config['depths'],
-num_heads=swin_config['num_heads'])
+    img_size=swin_config['img_size'],
+    num_classes=swin_config['num_class'],
+    embed_dim=swin_config['embed_dim'],
+    depths=swin_config['depths'],
+    num_heads=swin_config['num_heads'])
 ```
