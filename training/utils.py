@@ -1,9 +1,10 @@
+from numpy import concatenate
 import torch
 import torch.nn as nn
 
 from torchsummary import summary
 
-from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler, Sampler
 from adamp import AdamP
 
 from .transforms import get_transforms
@@ -11,6 +12,17 @@ from .datasets import GLRv2, GLRv2_5, GLRv2_5_preprocessed
 from .models.efficientnet.efficient_net import EfficientNet
 from .models.swintransformer.swin_transformer import SwinTransformer
 from .models.senet.se_resnet import se_resnet50
+
+
+class SubsetSampler(Sampler):
+    def __init__(self, mask):
+        self.mask = mask
+
+    def __iter__(self):
+        return (i for i in self.mask)
+
+    def __len__(self):
+        return len(self.mask)
 
 def set_loader(config):
 
@@ -30,12 +42,25 @@ def set_loader(config):
         elif config.dataset == "GLRv2_5_preprocessed":
             train_dataset = GLRv2_5_preprocessed(config.data_folder, transform=train_transform)
             test_dataset = GLRv2_5_preprocessed(config.data_folder, transform=test_transform)
+        elif config.dataset == "GLRv2_5_preprocessed_file_names":
+            train_dataset = GLRv2_5_preprocessed(config.data_folder, transform=None)
+            test_dataset = GLRv2_5_preprocessed(config.data_folder, transform=None)
     
         assert list(train_dataset.test_indices) == list(test_dataset.test_indices)
+
         #create the SubsetRandomSamplers
-        train_sampler = SubsetRandomSampler(train_dataset.train_indices)
-        val_sampler = SubsetRandomSampler(test_dataset.val_indices)
-        test_sampler = SubsetRandomSampler(test_dataset.test_indices)
+        if config.random == "True":
+            train_sampler = SubsetRandomSampler(train_dataset.train_indices)
+            val_sampler = SubsetRandomSampler(test_dataset.val_indices)
+            test_sampler = SubsetRandomSampler(test_dataset.test_indices)
+        elif config.random == "False":
+            train_sampler = SubsetSampler(train_dataset.train_indices)
+            val_sampler = SubsetSampler(test_dataset.val_indices)
+            test_sampler = SubsetSampler(test_dataset.test_indices)
+
+        if config.dataset == "GLRv2_5_preprocessed_file_names":
+            train_dataset = train_dataset.imgs
+            test_dataset = test_dataset.imgs
 
         #create DataLoader objects to be used in training
         train_loader = torch.utils.data.DataLoader(

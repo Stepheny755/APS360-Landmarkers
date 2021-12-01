@@ -2,6 +2,8 @@ datasets
 eval
 save
 runs
+models
+embeddings
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

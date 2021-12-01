@@ -4,7 +4,7 @@ definition for parsing functions for initiating code
 import argparse
 import os
 
-def parse_option():
+def parse_option(inp = None):
     """
     Parser for command line calls of the train function
     """
@@ -21,6 +21,8 @@ def parse_option():
                         help='number of workers to use')
     parser.add_argument('--epochs', type=int, default=100,
                         help='number of training epochs')
+    parser.add_argument('--random', type=str, default='True',
+                        help='whether we randomly sample or not')
 
     # Optimization
     parser.add_argument('--learning_rate', type=float, default=3e-4,
@@ -74,7 +76,10 @@ def parse_option():
     parser.add_argument('--distortion_factor', type=float, default=0.3,
                         help='choose a distortion factor for the color augmentation; range - (0, 1]')
 
-    config = parser.parse_args()
+    if inp is None:
+        config = parser.parse_args()
+    else:
+        config = parser.parse_args(inp)
 
     # set the path to save the trained models
     config.model_path = './save/{}_models'.format(config.dataset)
