@@ -571,6 +571,10 @@ class SwinTransformer(nn.Module):
         x = torch.flatten(x, 1)
         return x
 
+    def embedding(self, x):
+        x = self.forward_features(x)
+        return x
+
     def forward(self, x):
         x = self.forward_features(x)
         if not self.feature_extractor:

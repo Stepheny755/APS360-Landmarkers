@@ -26,5 +26,23 @@ Adapted from: https://github.com/microsoft/Swin-Transformer/commit/6bbd83ca617db
 
 Example: see sample code in src/swintransformer/build_model.py
 ```python
-# features shape [samples, 768]
+from .models.swintransformer.swin_transformer import SwinTransformer
+
+swin_config = {
+'feature_extractor': False,  # (bool): If True, drop last fc
+'img_size': 224,  # (int | tuple(int)): Input image size. Default 224
+'num_class': num_classes,  # (int): Number of classes for classification head. Default: 1000
+'embed_dim': 96,  # (int): Patch embedding dimension. Default: 96
+'depths': [2, 2, 6, 2],  # (tuple(int)): Depth of each Swin Transformer layer. (see above)
+'num_heads': [4, 8, 16, 32],  # (tuple(int)): Number of attention heads in different layers.
+}
+
+model = SwinTransformer(feature_extractor=swin_config['feature_extractor'],
+    img_size=swin_config['img_size'],
+    num_classes=swin_config['num_class'],
+    embed_dim=swin_config['embed_dim'],
+    depths=swin_config['depths'],
+    num_heads=swin_config['num_heads'])
+
+features = model(img)  # features shape [samples, 768]
 ```
