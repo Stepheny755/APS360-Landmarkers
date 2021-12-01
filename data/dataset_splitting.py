@@ -1,6 +1,5 @@
 from dataset_transforms import Dataset_Transforms
 
-from dotenv import dotenv_values
 from PIL import Image
 
 import multiprocessing
@@ -291,15 +290,56 @@ class Data_Splitting():
         # image abcdef.jpg is placed in a/b/c/abcdef.jpg
         return os.path.join(im_id[0],im_id[1],im_id[2])
 
+def create_examples(path,save_path):
+        """
+        Appends additional training examples to existing dataset. Adds training example names to existing .csv file
+
+        Parameters
+        ----------
+        path : str
+            path to additional training examples
+        """
+
+        data = []
+
+            # img = Image.open(full_path)
+            # img = self.transforms(img)
+            # img.save(os.path.join(save_path,str(filename)))
+
+        print("Creating new data examples from folder "+str(path))
+        print("Saving to "+save_path)
+
+        for subdir, dirs, files in os.walk(path):
+            for file in files:
+                # print(subdir.split("/")[-1])
+                # print(file.replace(".jpg",""))
+                lm_id = subdir.split("/")[-1]
+                lm_index = file.replace(".jpg","")
+
+                full_path = os.path.join(subdir, file)
+                tmp_spath = os.path.join(save_path, lm_id)
+
+                if not(os.path.exists(tmp_spath)):
+                    os.makedirs(tmp_spath)
+
+                img = Image.open(full_path)
+                dt = Dataset_Transforms()
+                transforms = dt.get_data_transforms()
+                img = transforms(img)
+                img.save(os.path.join(save_path,lm_id,str(lm_index)+".jpg"))
+                # print(os.path.join(subdir, file))
+                data.append([lm_id, lm_index])
+
+        with open(os.path.join(save_path,'train.csv'),'a') as file:
+            writer = csv.writer(file)
+            writer.writerows(data)
+
 if(__name__=="__main__"):
-    # Load env variables from .env file
-    cfg = dotenv_values(".env")
     
     # Set relevant variables
-    dataset_path = cfg["DATASET_PATH"]
-    num_workers = cfg["NUM_WORKERS"]
-
-    output_path = cfg["OUTPUT_PATH"]
+    dataset_path = "/mnt/d/Datasets/GoogleLandmarkRecognition2021/landmark-recognition-2021"
+    num_workers = 16
+    output_path = "/mnt/d/Datasets/GoogleLandmarkRecognition2021/landmark-recognition-1k-5-preprocessed"
 
     # Create data_splitting object with dataset at dataset_path and num_workers
     d = Data_Splitting(dataset_path,output_path,num_workers)
@@ -308,7 +348,10 @@ if(__name__=="__main__"):
     # d.create_split_1k()
     # d.save_csv([{123:"asd1qgasf"},{245:"agawfgaxscva"},{456:"asfhqowifh"}],"test")
 
-    d.create_split_1k_preprocess()
+    # d.create_split_1k_preprocess()
+    new_examples_path = "/mnt/d/Datasets/APS360/Train Photos"
+    save_path = "/mnt/d/Datasets/APS360/NewTrainExamples"
+    create_examples(new_examples_path,save_path)
 
 
 

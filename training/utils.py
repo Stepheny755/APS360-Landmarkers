@@ -98,39 +98,17 @@ def set_model(config, train_loader):
         swin_config = {
             'feature_extractor': False,  # (bool): If True, drop last fc
             'img_size': 224,  # (int | tuple(int)): Input image size. Default 224
-            'patch_size': 4,  # (int | tuple(int)): Patch size. Default: 4
-            'in_chans': 3,  # (int): Number of input image channels. Default: 3
             'num_class': num_classes,  # (int): Number of classes for classification head. Default: 1000
             'embed_dim': 96,  # (int): Patch embedding dimension. Default: 96
             'depths': [2, 2, 6, 2],  # (tuple(int)): Depth of each Swin Transformer layer. (see above)
             'num_heads': [4, 8, 16, 32],  # (tuple(int)): Number of attention heads in different layers.
-            'window_size': 7,  # (int): Window size. Default: 7
-            'mlp_ratio': 4.0,  # (float): Ratio of mlp hidden dim to embedding dim. Default: 4
-            'qkv_bias': True,  # (bool): If True, add a learnable bias to query, key, value. Default: True
-            'qk_scale': None,  # (float): Override default qk scale of head_dim ** -0.5 if set. Default: None
-            'drop_rate': 0.0,  # (float): Dropout rate. Default: 0
-            'drop_path_rate': 0.1,  # (float): Stochastic depth rate. Default: 0.1
-            'ape': False,  # (bool): If True, add absolute position embedding to the patch embedding. Default: False
-            'patch_norm': True,  # (bool): If True, add normalization after patch embedding. Default: True
-            'use_checkpoint': False  # (bool): Whether to use checkpointing to save memory. Default: False
         }
         model = SwinTransformer(feature_extractor=swin_config['feature_extractor'],
                         img_size=swin_config['img_size'],
-                        patch_size=swin_config['patch_size'],
-                        in_chans=swin_config['in_chans'],
                         num_classes=swin_config['num_class'],
                         embed_dim=swin_config['embed_dim'],
                         depths=swin_config['depths'],
-                        num_heads=swin_config['num_heads'],
-                        window_size=swin_config['window_size'],
-                        mlp_ratio=swin_config['mlp_ratio'],
-                        qkv_bias=swin_config['qkv_bias'],
-                        qk_scale=swin_config['qk_scale'],
-                        drop_rate=swin_config['drop_rate'],
-                        drop_path_rate=swin_config['drop_path_rate'],
-                        ape=swin_config['ape'],
-                        patch_norm=swin_config['patch_norm'],
-                        use_checkpoint=swin_config['use_checkpoint'])
+                        num_heads=swin_config['num_heads'])
         if config.freeze_layers == "True":
             for param in model.parameters():
                 # print(param)
