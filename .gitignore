@@ -4,6 +4,7 @@ save
 runs
 models
 embeddings
+big_embeddings
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

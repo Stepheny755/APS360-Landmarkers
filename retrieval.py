@@ -76,13 +76,12 @@ class KNNClassifier():
             top_indices = [torch.topk(cos_sim, self.k, dim=1, largest=True)[1] for cos_sim in cos_sims]
 
             # top_embeddings = [self.embeddings[idx][top_index.detach().cpu().numpy()] for idx, top_index in enumerate(top_indices)]
-
             top_classes = [self.labels[idx][indices.detach().cpu().numpy()] for idx, indices in enumerate(top_indices)]
             top_classes_images = [self.fns[idx][indices.detach().cpu().numpy()] for idx, indices in enumerate(top_indices)]
             top_classes = np.concatenate(top_classes, axis=1, dtype=np.int64)
             top_class = np.array([np.bincount(arr).argmax() for arr in top_classes])
 
-            return top_class, top_classes_images
+            return top_class, top_classes_images, top_classes
             
 
 def get_knn_effnet(query, effnet, train_loader, k=3):

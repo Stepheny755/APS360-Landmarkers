@@ -45,6 +45,9 @@ def set_loader(config):
         elif config.dataset == "GLRv2_5_preprocessed_file_names":
             train_dataset = GLRv2_5_preprocessed(config.data_folder, transform=None)
             test_dataset = GLRv2_5_preprocessed(config.data_folder, transform=None)
+        elif config.dataset == "GLRv2_file_names":
+            train_dataset = GLRv2(config.data_folder, transform=None)
+            test_dataset = GLRv2(config.data_folder, transform=None)
     
         assert list(train_dataset.test_indices) == list(test_dataset.test_indices)
 
@@ -58,7 +61,7 @@ def set_loader(config):
             val_sampler = SubsetSampler(test_dataset.val_indices)
             test_sampler = SubsetSampler(test_dataset.test_indices)
 
-        if config.dataset == "GLRv2_5_preprocessed_file_names":
+        if "file_names" in config.dataset:
             train_dataset = train_dataset.imgs
             test_dataset = test_dataset.imgs
 
